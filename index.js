@@ -3,7 +3,7 @@ const client = new Discord.Client();
 const fs = require('fs');
 
 require('dotenv').config();
-const { prefix } = require('./config.json');
+const { prefix } = require('./config.json') || process.env.PREFIX;
 
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
