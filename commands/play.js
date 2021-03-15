@@ -14,6 +14,7 @@ const opts = {
 module.exports = {
 	name: 'play',
 	description: 'music time',
+	servers: servers,
 	async execute(message, args) {
 		let link;
 		if(message.member.voice.channel && !args[0].startsWith('https')) {
