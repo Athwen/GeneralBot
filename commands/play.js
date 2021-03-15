@@ -17,7 +17,7 @@ module.exports = {
 	servers: servers,
 	async execute(message, args) {
 		let link;
-		if(message.member.voice.channel && !args[0].startsWith('https')) {
+		if(!args[0].startsWith('https')) {
 			ytsearch(args.join(), opts, function(err, results) {
 				console.log(err);
 				link = results[0].link;
@@ -31,13 +31,14 @@ module.exports = {
 				}
 
 			});
-
-
+		}else{
+			link = args[0];
 		}
 
+
 		if(servers[message.guild.id]) {
-			servers[message.guild.id].queue.push(args[0]);
-			message.reply(servers[message.guild.id].queue[0]);
+			servers[message.guild.id].queue.push(link);
+			message.reply(servers[message.guild.id].link);
 			console.log(servers[message.guild.id].queue);
 
 		}
@@ -46,7 +47,7 @@ module.exports = {
 		// dispatcher.on finish play next queued song
 		if(servers[message.guild.id] == undefined || servers[message.guild.id].connection == undefined) {
 			const connection = await message.member.voice.channel.join();
-			const dispatcher = connection.play(ytdl(args[0], { filter: 'audioonly' }), { type: 'webm/opus', volume: 0.075 });
+			const dispatcher = connection.play(ytdl(link, { filter: 'audioonly' }), { type: 'webm/opus', volume: 0.055 });
 			servers[message.guild.id] = { queue: [] };
 
 			const server = servers[message.guild.id];
@@ -56,7 +57,7 @@ module.exports = {
 			server.dispatcher.on('finish', () => {
 				console.log('ON FINISH: ' + server.queue[0]);
 				if(server.queue[0] != undefined) {
-					server.connection.play(ytdl(server.queue[0], { filter: 'audioonly' }), { type: 'webm/opus', volume: 0.075 });
+					server.connection.play(ytdl(server.queue[0], { filter: 'audioonly' }), { type: 'webm/opus', volume: 0.055 });
 
 				} else {
 					server.connection.disconnect();
