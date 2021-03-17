@@ -6,12 +6,16 @@ require('dotenv').config();
 const prefix = process.env.PREFIX;
 
 client.commands = new Discord.Collection();
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
-for(const file of commandFiles) {
-	const command = require(`./commands/${file}`);
-	client.commands.set(command.name, command);
+const commandFolders = fs.readdirSync('./commands');
 
+for(const folder of commandFolders) {
+	const commandFiles = fs.readdirSync(`./commands/${folder}`).filter(file => file.endsWith('.js'));
+	for(const file of commandFiles) {
+		const command = require(`./commands/${folder}/${file}`);
+		client.commands.set(command.name, command);
+
+	}
 }
 
 client.once('ready', ()=> {
@@ -28,8 +32,10 @@ client.on('message', message =>{
 
 	if(!client.commands.has(commandName)) return;
 
+	const command = client.commands.get(commandName);
+
 	try {
-		client.commands.get(commandName).execute(message, args);
+		command.execute(message, args);
 
 	} catch (error) {
 		console.log(error);
