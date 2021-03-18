@@ -3,7 +3,7 @@ const usersPref = {};
 function createInterval(message, args, time) {
 	let stopWater = false;
 
-	// check for stop arg or number arg 
+	// check for stop arg or number arg
 	if(isNaN(args[0])) {
 		if(args[0].toLowerCase() == 'stop') {
 			stopWater = true;
@@ -20,7 +20,7 @@ function createInterval(message, args, time) {
 
 	if(stopWater) {
 		if(usersPref[message.author.id]) {
-			message.reply('Your intervals have been deactivated.');
+			message.reply('Your timer has been deactivated.');
 			clearInterval(usersPref[message.author.id].timeout);
 		} else {
 			message.reply('You don\'t have a timer active!');
@@ -28,21 +28,24 @@ function createInterval(message, args, time) {
 		}
 
 	}else{
+		console.log(usersPref[message.author.id]);
 		if(usersPref[message.author.id]) {
 			message.reply('Delete your current timer before creating a new one.');
 			return;
 		}
 		usersPref[message.author.id] = {};
-		if(Date.getHours() > 18) {
-			usersPref[message.author.id].date = new Date(Date.getFullYear, Date.getDate(), Date.getDay() + 1, (Date.getHours() + 5) % 23);
+		const currDate = new Date();
+		if(currDate.getHours() > 18) {
+			usersPref[message.author.id].date = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate() + 1, (currDate.getHours() + 5) % 23);
 
 		} else {
-			usersPref[message.author.id].date = new Date(Date.getFullYear, Date.getDate(), Date.getDay(), Date.getHours() + 5);
+			usersPref[message.author.id].date = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate(), currDate.getHours() + 5);
 
 		}
 
 		usersPref[message.author.id].timeout = setInterval(() => {
-			if(Date.now() < usersPref[message.author.id].date) {
+			const insideDate = new Date();
+			if(insideDate < usersPref[message.author.id].date) {
 				return message.reply('Drink water');
 			} else {
 				clearInterval(usersPref[message.author.id].timeout);
@@ -51,7 +54,6 @@ function createInterval(message, args, time) {
 
 		}, time);
 		message.reply('Your reminder is set!');
-		console.log(usersPref);
 
 	}
 
