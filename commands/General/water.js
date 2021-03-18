@@ -1,4 +1,5 @@
 const usersPref = {};
+const help = 'This command allows you to set up an interval timer that reminds you to drink water; it expires in 5 hours';
 
 function createInterval(message, args, time) {
 	let stopWater = false;
@@ -9,9 +10,11 @@ function createInterval(message, args, time) {
 			stopWater = true;
 		} else {
 			message.reply('Invalid input');
+			return;
 		}
 	} else if(args[0] < 10) {
 		message.reply('Enter an interval that is longer than 10 minutes');
+		return;
 
 	} else if(args[0] > 35700) {
 		message.reply('Enter an interval that wont break the bot pls');
@@ -22,6 +25,7 @@ function createInterval(message, args, time) {
 		if(usersPref[message.author.id]) {
 			message.reply('Your timer has been deactivated.');
 			clearInterval(usersPref[message.author.id].timeout);
+			delete usersPref[message.author.id];
 		} else {
 			message.reply('You don\'t have a timer active!');
 
@@ -64,6 +68,7 @@ module.exports = {
 	description: 'a water reminder',
 	args: true,
 	usage: '<minutes>',
+	help,
 	execute(message, args) {
 		const minutesToMS = (args[0] * 60) * 1000;
 		createInterval(message, args, minutesToMS);

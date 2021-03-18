@@ -42,6 +42,9 @@ client.on('message', message =>{
 		}
 
 		return message.channel.send(reply);
+	} else if (args[0] == 'help') {
+		return message.channel.send(command.help);
+
 	}
 
 	try {
