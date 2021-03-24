@@ -1,73 +1,98 @@
-const ytdl = require('ytdl-core');
+const ytdl = require('ytdl-core-discord');
 const ytsearch = require('youtube-search');
 require('dotenv').config();
+const util = require('util');
+const axios = require('axios');
+
+const EventEmitter = require('events');
+class MyEmitter extends EventEmitter {}
+const MusicEmitter = new MyEmitter();
 
 const servers = {};
+
+async function playSong(server) {
+	const dispatcher = server.connection.play(await ytdl(server.queue[0], { filter: 'audioonly' }), { type: 'opus', volume: 0.055 });
+	dispatcher.on('finish', () => {
+		server.queue.shift();
+		MusicEmitter.emit('nextSong');
+	});
+
+}
 
 const opts = {
 	maxResults: 10,
 	key: process.env.YTKEY,
-	type: 'video',
+	type: 'video, playlist',
 };
-
 
 module.exports = {
 	name: 'play',
 	description: 'music time',
 	servers: servers,
+	MusicEmitter: MusicEmitter,
 	async execute(message, args) {
 		let link;
 		if(!args[0].startsWith('https')) {
-			ytsearch(args.join(), opts, function(err, results) {
-				console.log(err);
+
+			const ytSearchPromise = util.promisify(ytsearch);
+
+			ytSearchPromise(args.join(), opts).then(results => {
 				link = results[0].link;
 				console.log('link inside ytsearch:' + link);
 
-				if(servers[message.guild.id]) {
-					servers[message.guild.id].queue.push(link);
-					message.reply(link);
-					console.log(servers[message.guild.id].queue);
-
-				}
+			}).catch(err => {
+				console.log(err);
 
 			});
-		}else{
+		} else if(args[0].includes('playlist')) {
+			const splitURL = args[0].split('list=');
+			const playlistID = splitURL[1];
+
+			const getReq = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistID}&key=${process.env.YTKEY}`;
+
+			axios.get(getReq).then(response => {
+				console.log(response.data.items);
+
+			});
+
+		} else {
 			link = args[0];
 		}
 
 
 		if(servers[message.guild.id]) {
 			servers[message.guild.id].queue.push(link);
-			message.reply(servers[message.guild.id].link);
 			console.log(servers[message.guild.id].queue);
 
-		}
-
-		// if music is playing already then add to queue
-		// dispatcher.on finish play next queued song
-		if(servers[message.guild.id] == undefined || servers[message.guild.id].connection == undefined) {
+		}else {
 			const connection = await message.member.voice.channel.join();
-			const dispatcher = connection.play(ytdl(link, { filter: 'audioonly' }), { type: 'webm/opus', volume: 0.055 });
 			servers[message.guild.id] = { queue: [] };
+			servers[message.guild.id].connection = connection;
+			servers[message.guild.id].queue.push(link);
 
-			const server = servers[message.guild.id];
-			server.dispatcher = dispatcher;
-			server.connection = connection;
+			MusicEmitter.on('nextSong', async () => {
+				if(!servers[message.guild.id]) return;
 
-			server.dispatcher.on('finish', () => {
-				console.log('ON FINISH: ' + server.queue[0]);
+				const server = servers[message.guild.id];
+
 				if(server.queue[0] != undefined) {
-					server.connection.play(ytdl(server.queue[0], { filter: 'audioonly' }), { type: 'webm/opus', volume: 0.055 });
+					const dispatcher = server.connection.play(await ytdl(server.queue[0], { filter: 'audioonly' }), { type: 'opus', volume: 0.055 });
+					dispatcher.on('finish', () => {
+						server.queue.shift();
+						console.log('JHASDNFJSHDBF');
+						MusicEmitter.emit('nextSong');
+						return;
+					});
 
 				} else {
 					server.connection.disconnect();
-					server.connection = undefined;
+					delete servers[message.guild.id];
+
 				}
 
-				server.queue.shift();
 			});
 
-
+			MusicEmitter.emit('nextSong');
 		}
 
 	},
