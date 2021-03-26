@@ -21,6 +21,12 @@ module.exports = {
 	description: 'music time',
 	servers: servers,
 	async execute(message, args) {
+		if(!message.member.voice) {
+			message.reply('You must be in a voice channel first!');
+			return;
+		}
+
+
 		class MyEmitter extends EventEmitter {}
 		const MusicEmitter = new MyEmitter();
 
@@ -55,12 +61,12 @@ module.exports = {
 			const playlistID = currURL.searchParams.get('list');
 			let nextPageToken = '';
 
-			// This loop should go through each page of youtube's item/pagination 
+			// This loop should go through each page of youtube's item/pagination
 			do{
 				const getReq = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&pageToken=${nextPageToken}&playlistId=${playlistID}&key=${process.env.YTKEY}`;
 				let i = 0;
 
-				// Make the request to Youtube Data API 
+				// Make the request to Youtube Data API
 				await axios.get(getReq).then(response => {
 					console.log(response.data.items[0].snippet.resourceId.videoId);
 					for(i = 0; i < response.data.items.length; i++) {
