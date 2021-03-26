@@ -6,21 +6,10 @@ const axios = require('axios');
 const url = require('url');
 
 const EventEmitter = require('events');
-class MyEmitter extends EventEmitter {}
-const MusicEmitter = new MyEmitter();
+
 
 const servers = {};
 const YTLink = 'https://www.youtube.com/watch?v=';
-
-async function playSong(server) {
-	const dispatcher = server.connection.play(await ytdl(server.queue[0], { filter: 'audioonly' }), { type: 'opus', volume: 0.055 });
-	dispatcher.on('finish', () => {
-		server.queue.shift();
-		MusicEmitter.emit('nextSong');
-	});
-
-}
-
 const opts = {
 	maxResults: 10,
 	key: process.env.YTKEY,
@@ -31,18 +20,22 @@ module.exports = {
 	name: 'play',
 	description: 'music time',
 	servers: servers,
-	MusicEmitter: MusicEmitter,
 	async execute(message, args) {
+		class MyEmitter extends EventEmitter {}
+		const MusicEmitter = new MyEmitter();
+
 		let link;
+		// if there is no link then search on youtube and add link to queue
 		if(!args[0].startsWith('https') && !args[0].includes('playlist')) {
 
+			// Get YT link
 			const ytSearchPromise = util.promisify(ytsearch);
-
-			ytSearchPromise(args.join(), opts).then(results => {
+			await ytSearchPromise(args.join(), opts).then(results => {
 				if(!servers[message.guild.id]) {
 					servers[message.guild.id] = { queue: [] };
-
+					servers[message.guild.id].connection = null;
 				}
+				// Add to server queue
 				link = results[0].link;
 				servers[message.guild.id].queue.push(link);
 				console.log('link inside ytsearch:' + link);
@@ -51,19 +44,23 @@ module.exports = {
 				console.log(err);
 
 			});
+		// if link is a playlist then get playlist id
 		} else if(args[0].includes('playlist')) {
 			if(!servers[message.guild.id]) {
 				servers[message.guild.id] = { queue: [] };
+				servers[message.guild.id].connection = null;
 			}
 
 			const currURL = new URL(args[0]);
 			const playlistID = currURL.searchParams.get('list');
-			console.log(playlistID);
 			let nextPageToken = '';
 
+			// This loop should go through each page of youtube's item/pagination 
 			do{
 				const getReq = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&pageToken=${nextPageToken}&playlistId=${playlistID}&key=${process.env.YTKEY}`;
 				let i = 0;
+
+				// Make the request to Youtube Data API 
 				await axios.get(getReq).then(response => {
 					console.log(response.data.items[0].snippet.resourceId.videoId);
 					for(i = 0; i < response.data.items.length; i++) {
@@ -71,7 +68,7 @@ module.exports = {
 						servers[message.guild.id].queue.push(`${YTLink}${response.data.items[i].snippet['resourceId'].videoId}`);
 
 					}
-
+					// Set next page token
 					nextPageToken = response.data['nextPageToken'];
 
 				}).catch(error => {
@@ -79,20 +76,21 @@ module.exports = {
 
 				});
 
+			// Go until there is no next page
 			} while(nextPageToken != undefined);
 
-			console.log(servers[message.guild.id].queue);
-
 		} else {
+			// If it is just a youtube link then add to queue
 			if(!servers[message.guild.id]) {
 				servers[message.guild.id] = { queue: [] };
-
+				servers[message.guild.id].connection = null;
 			}
 			servers[message.guild.id].queue.push(args[0]);
 		}
 
 
-		if(servers[message.guild.id] == undefined) {
+		// If server isnt created yet then create it and create connection
+		if(servers[message.guild.id].connection == null) {
 			if(!message.member.voice) {
 				message.reply('You must be in a voice channel first!');
 				return;
@@ -100,8 +98,10 @@ module.exports = {
 			const connection = await message.member.voice.channel.join();
 
 			servers[message.guild.id].connection = connection;
+			servers[message.guild.id].musicemitter = MusicEmitter;
 
-			MusicEmitter.on('nextSong', async () => {
+			// create listener for whenever a new song needs to be played
+			servers[message.guild.id].musicemitter.on('nextSong', async () => {
 				if(!servers[message.guild.id]) return;
 
 				const server = servers[message.guild.id];
@@ -111,7 +111,7 @@ module.exports = {
 					dispatcher.on('finish', () => {
 						server.queue.shift();
 						console.log('JHASDNFJSHDBF');
-						MusicEmitter.emit('nextSong');
+						servers[message.guild.id].musicemitter.emit('nextSong');
 						return;
 					});
 

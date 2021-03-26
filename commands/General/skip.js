@@ -6,7 +6,7 @@ module.exports = {
 	async execute(message, args) {
 		if(servers[message.guild.id]) {
 			servers[message.guild.id].queue.shift();
-			MusicEmitter.emit('nextSong');
+			servers[message.guild.id].musicemitter.emit('nextSong');
 
 		} else {
 			message.reply('The bot is not currently playing music');
