@@ -113,7 +113,7 @@ module.exports = {
 				const server = servers[message.guild.id];
 
 				if(server.queue[0] != undefined) {
-					const dispatcher = server.connection.play(await ytdl(server.queue[0], { filter: 'audioonly' }), { type: 'opus', volume: 0.055 });
+					const dispatcher = server.connection.play(await ytdl(server.queue[0], { filter: 'audioonly' }), { type: 'opus', volume: 0.5 });
 					dispatcher.on('finish', () => {
 						server.queue.shift();
 						console.log('JHASDNFJSHDBF');
