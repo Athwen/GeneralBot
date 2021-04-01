@@ -51,7 +51,7 @@ module.exports = {
 
 			});
 		// if link is a playlist then get playlist id
-		} else if(args[0].includes('playlist')) {
+		} else if(args[0].includes('list')) {
 			if(!servers[message.guild.id]) {
 				servers[message.guild.id] = { queue: [] };
 				servers[message.guild.id].connection = null;
