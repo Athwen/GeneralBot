@@ -38,14 +38,9 @@ function createInterval(message, args, time) {
 			return;
 		}
 		usersPref[message.author.id] = {};
-		const currDate = new Date();
-		if(currDate.getHours() > 18) {
-			usersPref[message.author.id].date = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate() + 1, (currDate.getHours() + 5) % 23);
-
-		} else {
-			usersPref[message.author.id].date = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate(), currDate.getHours() + 5);
-
-		}
+		const expiryTime = new Date();
+		expiryTime.setHours(expiryTime.getHours + 5);
+		usersPref[message.author.id].date = expiryTime;
 
 		usersPref[message.author.id].timeout = setInterval(() => {
 			const insideDate = new Date();
