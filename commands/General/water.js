@@ -39,7 +39,7 @@ function createInterval(message, args, time) {
 		}
 		usersPref[message.author.id] = {};
 		const expiryTime = new Date();
-		expiryTime.setHours(expiryTime.getHours + 5);
+		expiryTime.setHours(expiryTime.getHours() + 5);
 		usersPref[message.author.id].date = expiryTime;
 
 		usersPref[message.author.id].timeout = setInterval(() => {
