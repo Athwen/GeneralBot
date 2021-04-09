@@ -32,7 +32,13 @@ module.exports = {
 
 		let link;
 		// if there is no link then search on youtube and add link to queue
-		if(!args[0].startsWith('https') && !args[0].includes('playlist')) {
+		if(args[0] == 'banger') {
+			if(!servers[message.guild.id]) {
+				servers[message.guild.id] = { queue: [] };
+				servers[message.guild.id].connection = null;
+			}
+			servers[message.guild.id].queue.push('https://www.youtube.com/watch?v=XD-OFP-0H5g');
+		}else if(!args[0].startsWith('https') && !args[0].includes('playlist')) {
 
 			// Get YT link
 			const ytSearchPromise = util.promisify(ytsearch);
@@ -113,12 +119,13 @@ module.exports = {
 				const server = servers[message.guild.id];
 
 				if(server.queue[0] != undefined) {
-					const dispatcher = server.connection.play(await ytdl(server.queue[0], { filter: 'audioonly' }), { type: 'opus', volume: 0.5 });
+					const dispatcher = server.connection.play(await ytdl(server.queue[0], { highWaterMark: 1 << 25, filter: 'audioonly' }), { type: 'opus', volume: 0.5 });
 					dispatcher.on('finish', () => {
 						server.queue.shift();
 						console.log('JHASDNFJSHDBF');
 						servers[message.guild.id].musicemitter.emit('nextSong');
 						return;
+
 					});
 
 				} else {
