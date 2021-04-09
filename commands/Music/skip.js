@@ -1,4 +1,4 @@
-const { servers, MusicEmitter } = require('./play.js');
+const { servers } = require('./play');
 
 module.exports = {
 	name: 'skip',
