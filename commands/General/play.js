@@ -3,7 +3,6 @@ const ytsearch = require('youtube-search');
 require('dotenv').config();
 const util = require('util');
 const axios = require('axios');
-const url = require('url');
 
 const EventEmitter = require('events');
 
@@ -21,7 +20,7 @@ module.exports = {
 	description: 'music time',
 	servers: servers,
 	async execute(message, args) {
-		if(!message.member.voice) {
+		if(!message.member.voice.channel) {
 			message.reply('You must be in a voice channel first!');
 			return;
 		}
@@ -50,7 +49,6 @@ module.exports = {
 				// Add to server queue
 				link = results[0].link;
 				servers[message.guild.id].queue.push(link);
-				console.log('link inside ytsearch:' + link);
 
 			}).catch(err => {
 				console.log(err);
@@ -74,9 +72,7 @@ module.exports = {
 
 				// Make the request to Youtube Data API
 				await axios.get(getReq).then(response => {
-					console.log(response.data.items[0].snippet.resourceId.videoId);
 					for(i = 0; i < response.data.items.length; i++) {
-						console.log(response.data.items[i].snippet['resourceId'].videoId);
 						servers[message.guild.id].queue.push(`${YTLink}${response.data.items[i].snippet['resourceId'].videoId}`);
 
 					}
@@ -103,11 +99,12 @@ module.exports = {
 
 		// If server isnt created yet then create it and create connection
 		if(servers[message.guild.id].connection == null) {
-			if(!message.member.voice) {
-				message.reply('You must be in a voice channel first!');
-				return;
-			}
 			const connection = await message.member.voice.channel.join();
+			connection.on('disconnect', () => {
+				delete servers[message.guild.id];
+
+			});
+			connection.voice.setDeaf(true);
 
 			servers[message.guild.id].connection = connection;
 			servers[message.guild.id].musicemitter = MusicEmitter;
@@ -122,7 +119,6 @@ module.exports = {
 					const dispatcher = server.connection.play(await ytdl(server.queue[0], { highWaterMark: 1 << 25, filter: 'audioonly' }), { type: 'opus', volume: 0.5 });
 					dispatcher.on('finish', () => {
 						server.queue.shift();
-						console.log('JHASDNFJSHDBF');
 						servers[message.guild.id].musicemitter.emit('nextSong');
 						return;
 
@@ -130,7 +126,6 @@ module.exports = {
 
 				} else {
 					server.connection.disconnect();
-					delete servers[message.guild.id];
 
 				}
 
