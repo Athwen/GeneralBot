@@ -37,7 +37,7 @@ module.exports = {
 		if(evenTeamSize == 'true' && people.length % numTeams != 0) {
 			// eslint-disable-next-line quotes
 			message.reply(`\`\`\`You set even team size to true but you can't create ${numTeams} even teams with ${people.length} people\`\`\` `);
-
+			return;
 		}
 
 		// shuffle people for random teams
