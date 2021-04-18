@@ -1,23 +1,28 @@
 module.exports = {
 	name: 'rolldice',
 	description: 'roll a dice',
+	usage: '<#>d<#>',
 	execute(message, args) {
 		const charArray = args[0].split('');
+		let firstNum, secondNum;
 
-		if(charArray.length == 3) {
-			if(isNaN(charArray[0]) && isNaN(charArray[2])) {
-				message.reply('intended format is <#>d<#>?');
-				return;
-			}
-		} else {
+		if(!args[0].includes('d')) {
+			message.reply('Proper format is <#>d<#>');
 			return;
 		}
 
-		const firstNumm = charArray[0], secondNum = charArray[2];
+		for(let i = 0; charArray.length; i++) {
+			if(charArray[i] == 'd') {
+				firstNum = args[0].substring(0, i);
+				secondNum = args[0].substring(i + 1, charArray.length);
+				break;
+			}
+		}
+
 		let result = 0;
 
 
-		for(let i = 0; i < firstNumm; i++) {
+		for(let i = 0; i < firstNum; i++) {
 			result += Math.floor((Math.random() * secondNum) + 1);
 
 		}
