@@ -1,8 +1,6 @@
 const CodeGenerator = require('node-code-generator');
 const admin = require('firebase-admin');
-const Discord = require('discord.js');
 const ytdl = require('ytdl-core-discord');
-const ytsearch = require('youtube-search');
 
 
 const servers = {};
@@ -37,7 +35,7 @@ module.exports = {
 		}while (doc.exists || count > 5);
 
 		// creates document with the room code
-		db.collection('rooms').doc(codes[count]).set({
+		await db.collection('rooms').doc(codes[count]).set({
 			queue: [],
 
 		});
@@ -48,7 +46,11 @@ module.exports = {
 		message.reply(server.roomCode);
 
 		const observer = db.collection('rooms').doc(server.roomCode).onSnapshot(docSnapshot => {
-			server.queue = docSnapshot.get('queue');
+			const dataQ = docSnapshot.get('queue');
+
+			if(dataQ == undefined) return;
+
+			server.queue = dataQ;
 			console.log(server.queue);
 
 			// start playing music if there is no music playing
