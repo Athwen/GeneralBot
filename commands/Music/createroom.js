@@ -1,9 +1,9 @@
 const CodeGenerator = require('node-code-generator');
-const admin = require('firebase-admin');
 const ytdl = require('ytdl-core-discord');
-
+const admin = require('firebase-admin');
 
 const servers = {};
+const roomsToServer = {};
 
 admin.initializeApp({
 	credential: admin.credential.cert(JSON.parse(process.env.SERVICE_ACCOUNT)),
@@ -16,6 +16,7 @@ module.exports = {
 	description: 'Creates a music room',
 	servers: servers,
 	db: db,
+	roomsToServer: roomsToServer,
 	async execute(message, args) {
 
 		if(!message.member.voice.channel || servers[message.guild.id] != null) {
@@ -37,11 +38,16 @@ module.exports = {
 		// creates document with the room code
 		await db.collection('rooms').doc(codes[count]).set({
 			queue: [],
+			serverID: message.guild.id,
 
 		});
 
+
 		servers[message.guild.id] = { queue: [], roomCode: codes[count], playing: false };
 		const server = servers[message.guild.id];
+
+		roomsToServer[server.roomCode] = { serverID: message.guild.id };
+		console.log(roomsToServer);
 
 		message.reply(server.roomCode);
 
@@ -57,8 +63,8 @@ module.exports = {
 			if(server.queue.length != 0 && server.playing == false) {
 				const nextSong = server.queue.shift();
 				server.playing = true;
-				playMusic(nextSong, server);
-				db.collection('rooms').doc(server.roomCode).set({ queue: server.queue, currentSong: nextSong });
+				playMusic(nextSong, server, message);
+				db.collection('rooms').doc(server.roomCode).update({ queue: server.queue, currentSong: nextSong });
 			}
 		});
 
@@ -69,7 +75,7 @@ module.exports = {
 };
 
 
-async function playMusic(nextSong, server) {
+async function playMusic(nextSong, server, message) {
 
 	const dispatcher = await server.connection.play(await ytdl(nextSong.songLink, { highWaterMark: 1 << 25, filter: 'audioonly' }), { type: 'opus', volume: 0.5 });
 	server.dispatcher = dispatcher;
@@ -80,7 +86,7 @@ async function playMusic(nextSong, server) {
 			server.playing = false;
 			return;
 		}
-		db.collection('rooms').doc(server.roomCode).set({ queue: server.queue, currentSong: next });
+		db.collection('rooms').doc(server.roomCode).update({ queue: server.queue, currentSong: next });
 		playMusic(next, server);
 
 	});

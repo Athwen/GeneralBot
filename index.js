@@ -1,6 +1,9 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const fs = require('fs');
+const cors = require('cors');
+const express = require('express');
+const port = process.env.PORT || 5000;
 
 require('dotenv').config();
 const prefix = process.env.PREFIX;
@@ -8,6 +11,7 @@ const prefix = process.env.PREFIX;
 client.commands = new Discord.Collection();
 
 const commandFolders = fs.readdirSync('./commands');
+
 
 for(const folder of commandFolders) {
 	const commandFiles = fs.readdirSync(`./commands/${folder}`).filter(file => file.endsWith('.js'));
@@ -17,6 +21,24 @@ for(const folder of commandFolders) {
 
 	}
 }
+
+const app = express();
+
+app.set('port', (process.env.PORT || 5000));
+app.use(cors());
+app.use(express.json());
+
+const endPoints = fs.readdirSync('./api/botapi').filter(file => file.endsWith('.js'));
+for(const file of endPoints) {
+	const api = require(`./api/botapi/${file}`);
+	api.setApp(app);
+
+}
+
+const server = app.listen(port, () => {
+	console.log(`Server listening at onp port: ${port}`);
+
+});
 
 client.once('ready', ()=> {
 	console.log('Ready!');

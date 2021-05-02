@@ -5,9 +5,7 @@ require('dotenv').config();
 
 exports.setApp = async function(app, client) {
 	app.post('/api/test', async (req, res, next) =>{
-		console.log(req.body);
 		const { code } = req.body;
-		console.log(process.env.DISCORD_SECRET);
 
 		const ret = {};
 
@@ -16,7 +14,7 @@ exports.setApp = async function(app, client) {
 			const params = new URLSearchParams();
 			params.append('client_id', '800022605901201438');
 			params.append('client_secret', process.env.DISCORD_SECRET);
-			params.append('redirect_uri', 'https://general-bot-web.herokuapp.com/');
+			params.append('redirect_uri', 'https://pomopomo-bot.herokuapp.com/');
 			params.append('grant_type', 'authorization_code');
 			params.append('code', code);
 

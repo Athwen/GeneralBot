@@ -22,6 +22,8 @@ admin.initializeApp({
 	credential: admin.credential.cert(serviceAccount),
 });
 
+const db = admin.firestore();
+
 const endPoints = fs.readdirSync('./api').filter(file => file.endsWith('.js'));
 for(const file of endPoints) {
 	const api = require(`./api/${file}`);
@@ -57,4 +59,6 @@ const server = app.listen(port, () => {
 
 });
 
-module.exports = server;
+module.exports = {
+	db: db,
+};
