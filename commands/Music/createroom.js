@@ -5,10 +5,6 @@ const admin = require('firebase-admin');
 const servers = {};
 const roomsToServer = {};
 
-admin.initializeApp({
-	credential: admin.credential.cert(JSON.parse(process.env.SERVICE_ACCOUNT)),
-});
-
 const db = admin.firestore();
 
 module.exports = {
