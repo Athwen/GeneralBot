@@ -1,16 +1,27 @@
 const express = require('express');
 const fs = require('fs');
 const cors = require('cors');
-const { json } = require('express');
 require('dotenv').config();
 const path = require('path');
 const port = process.env.PORT || 5000;
+
+// firebase stuff
+const admin = require('firebase-admin');
+
+const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT);
+
+admin.initializeApp({
+	credential: admin.credential.cert(serviceAccount),
+});
+
+const db = admin.firestore();
 
 const app = express();
 
 app.set('port', (process.env.PORT || 5000));
 app.use(cors());
 app.use(express.json());
+
 
 if (process.env.NODE_ENV === 'production') {
 	// Set static folder
@@ -33,3 +44,14 @@ app.use((req, res, next) => {
 	);
 	next();
 });
+
+
+const server = app.listen(port, () => {
+	console.log(`Server listening at on port: ${port}`);
+
+});
+
+
+module.exports = {
+	db: db,
+};

@@ -5,6 +5,7 @@ const util = require('util');
 const axios = require('axios');
 
 const EventEmitter = require('events');
+const { VoiceState } = require('discord.js');
 
 
 const servers = {};
@@ -20,11 +21,11 @@ module.exports = {
 	description: 'music time',
 	servers: servers,
 	async execute(message, args) {
+		console.log(message.client.voice.connections);
 		if(!message.member.voice.channel) {
 			message.reply('You must be in a voice channel first!');
 			return;
 		}
-
 
 		class MyEmitter extends EventEmitter {}
 		const MusicEmitter = new MyEmitter();
@@ -100,11 +101,16 @@ module.exports = {
 		// If server isnt created yet then create it and create connection
 		if(servers[message.guild.id].connection == null) {
 			const connection = await message.member.voice.channel.join();
-			connection.on('disconnect', () => {
-				delete servers[message.guild.id];
+			// await connection.voice.setRequestToSpeak(true);
 
-			});
-			connection.voice.setDeaf(true);
+			// message.client.on('voiceStateUpdate', () => {
+			// 	if(connection.voice.suppress == false) {
+			// 		message.client.emit('notSuppressed');
+			// 	}
+			// });
+
+			// message.client.once('notSuppressed', () => {
+			connection.voice.setSelfDeaf(true);
 
 			servers[message.guild.id].connection = connection;
 			servers[message.guild.id].musicemitter = MusicEmitter;
@@ -132,6 +138,12 @@ module.exports = {
 			});
 
 			MusicEmitter.emit('nextSong');
+			// });
+			connection.on('disconnect', () => {
+				delete servers[message.guild.id];
+
+			});
+
 		}
 
 	},

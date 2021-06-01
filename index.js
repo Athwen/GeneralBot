@@ -12,17 +12,6 @@ const prefix = process.env.PREFIX;
 client.commands = new Discord.Collection();
 
 
-// firebase stuff
-const admin = require('firebase-admin');
-
-const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT);
-
-admin.initializeApp({
-	credential: admin.credential.cert(serviceAccount),
-});
-
-const db = admin.firestore();
-
 const commandFolders = fs.readdirSync('./commands');
 
 for(const folder of commandFolders) {
@@ -33,25 +22,6 @@ for(const folder of commandFolders) {
 
 	}
 }
-
-const app = express();
-
-app.set('port', (process.env.PORT || 5000));
-app.use(cors());
-app.use(express.json());
-
-const endPoints = fs.readdirSync('./api').filter(file => file.endsWith('.js'));
-for(const file of endPoints) {
-	const api = require(`./api/${file}`);
-	api.setApp(app);
-
-}
-
-
-const server = app.listen(port, () => {
-	console.log(`Server listening at port: ${port}`);
-
-});
 
 client.once('ready', async () => {
 	console.log('Ready!');
@@ -95,6 +65,3 @@ client.on('message', message =>{
 
 client.login(process.env.TOKEN);
 
-module.exports = {
-	db: db,
-};
