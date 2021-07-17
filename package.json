@@ -23,6 +23,7 @@
   "homepage": "https://github.com/Athwen/GeneralBot#readme",
   "dependencies": {
     "@discordjs/opus": "^0.4.0",
+    "@sapphire/async-queue": "^1.1.4",
     "axios": "^0.21.1",
     "cors": "^2.8.5",
     "discord-ytdl-core": "^5.0.2",
@@ -34,6 +35,7 @@
     "firebase-admin": "^9.7.0",
     "libsodium-wrappers": "^0.7.9",
     "node-code-generator": "^1.0.3",
+    "random-words": "^1.1.1",
     "sodium": "^3.0.2",
     "sodium-native": "^3.2.1",
     "ws": "^7.4.5",
