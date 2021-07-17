@@ -1,10 +1,6 @@
 const Discord = require('discord.js');
 const client = new Discord.Client({ intents: Discord.Intents.ALL });
 const fs = require('fs');
-const cors = require('cors');
-const express = require('express');
-const port = process.env.PORT || 5000;
-const path = require('path');
 
 require('dotenv').config();
 const prefix = process.env.PREFIX;
