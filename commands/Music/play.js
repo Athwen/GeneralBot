@@ -122,7 +122,7 @@ module.exports = {
 				const server = servers[message.guild.id];
 
 				if(server.queue[0] != undefined) {
-					const dispatcher = server.connection.play(await ytdl(server.queue[0], { highWaterMark: 1 << 25, filter: 'audioonly' }), { type: 'opus', volume: 0.2 });
+					const dispatcher = server.connection.play(await ytdl(server.queue[0], { highWaterMark: 1 << 25, filter: 'audioonly' }), { type: 'opus', volume: 0.4 });
 					dispatcher.on('finish', () => {
 						server.queue.shift();
 						servers[message.guild.id].musicemitter.emit('nextSong');
